@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Form</title>
+  <style>
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f7fafc;
+      padding: 16px;
+    }
+    .card {
+      background-color: white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .header {
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+      color: #2d3748;
+    }
+    .input-group {
+      margin-top: 16px;
+    }
+    .input-group input, .input-group button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .input-group button {
+      background-color: #edf2f7;
+      cursor: pointer;
+    }
+    .active {
+      background-color: #3182ce;
+      color: white;
+    }
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    .button-group button {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    .button-group .prev {
+      background-color: #edf2f7;
+    }
+    .button-group .next {
+      background-color: #3182ce;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div id="step-header" class="header">วันเกิด</div>
+      <div id="step-content" class="input-group">
+        <input type="date" id="birthDate" onchange="nextStep()" />
+      </div>
+      <div class="button-group">
+        <button id="prev-btn" class="prev" style="display: none;" onclick="prevStep()">ย้อนกลับ</button>
+        <button id="next-btn" class="next" onclick="nextStep()">ถัดไป</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let step = 0;
+    const steps = ["วันเกิด", "BMI", "ไลฟ์สไตล์", "เป้าหมาย", "ตั้งเป้าน้ำหนัก", "สรุปเป้าหมาย"];
+    const data = { birthDate: "", weight: "", height: "", lifestyle: "", goal: "", targetWeight: "", bmi: 0 };
+
+    const nextStep = () => {
+      if (step < steps.length - 1) {
+        step++;
+        updateForm();
+      }
+    };
+
+    const prevStep = () => {
+      if (step > 0) {
+        step--;
+        updateForm();
+      }
+    };
+
+    const updateForm = () => {
+      document.getElementById('step-header').innerText = steps[step];
+
+      let content = '';
+      if (step === 0) {
+        content = '<input type="date" id="birthDate" onchange="updateData(\'birthDate\', this.value)" />';
+      } else if (step === 1) {
+        content = `
+          <input type="number" placeholder="ส่วนสูง (ซม.)" onchange="updateData('height', this.value); calculateBMI()" />
+          <input type="number" placeholder="น้ำหนัก (กก.)" onchange="updateData('weight', this.value); calculateBMI()" />
+          <p id="bmi-result"></p>
+        `;
+      } else if (step === 2) {
+        const lifestyleOptions = ["นักกีฬา", "แอคทีฟมาก", "ปานกลาง", "เบา ๆ", "ไม่ออกกำลังกาย"];
+        content = lifestyleOptions.map(option => `
+          <button class="lifestyle-option" onclick="updateData('lifestyle', '${option}'); nextStep()">${option}</button>
+        `).join('');
+      } else if (step === 3) {
+        const goalOptions = ["รักษาน้ำหนัก", "เพิ่มน้ำหนัก", "ลดน้ำหนัก", "เพิ่มกล้ามเนื้อ"];
+        content = goalOptions.map(option => `
+          <button class="goal-option" onclick="updateData('goal', '${option}'); nextStep()">${option}</button>
+        `).join('');
+      } else if (step === 4) {
+        content = '<input type="number" placeholder="เป้าหมายน้ำหนัก (กก.)" onchange="updateData(\'targetWeight\', this.value)" />';
+      } else if (step === 5) {
+        content = `
+          <p>น้ำหนักเป้าหมายของคุณคือ ${data.targetWeight} กก.</p>
+          <p>แคลอรี่ที่แนะนำ: ${data.goal === "ลดน้ำหนัก" ? 1500 : data.goal === "เพิ่มน้ำหนัก" ? 2500 : 2000} kcal</p>
+          <p>คาร์โบไฮเดรตที่แนะนำ: ${data.goal === "ลดน้ำหนัก" ? "150g" : "250g"}</p>
+        `;
+      }
+
+      document.getElementById('step-content').innerHTML = content;
+
+      document.getElementById('prev-btn').style.display = step > 0 ? 'inline-block' : 'none';
+      document.getElementById('next-btn').style.display = step < steps.length - 1 ? 'inline-block' : 'none';
+    };
+
+    const updateData = (key, value) => {
+      data[key] = value;
+    };
+
+    const calculateBMI = () => {
+      const weight = parseFloat(data.weight);
+      const height = parseFloat(data.height);
+      if (weight && height) {
+        const bmi = weight / ((height / 100) ** 2);
+        data.bmi = bmi.toFixed(2);
+        document.getElementById('bmi-result').innerText = BMI ของคุณคือ ${data.bmi};
+      }
+    };
+
+    // Initialize form
+    updateForm();
+  </script>
+</body>
+</html>
